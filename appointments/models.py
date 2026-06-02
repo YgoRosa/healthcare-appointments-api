@@ -8,3 +8,16 @@ class Profissional(models.Model):
 
     def __str__(self):
         return self.nome_social
+    
+    
+class Consulta(models.Model):
+    data = models.DateTimeField()
+
+    profissional = models.ForeignKey(
+        Profissional,
+        on_delete=models.CASCADE,
+        related_name="consultas"
+    )
+
+    def __str__(self):
+        return f"Consulta {self.id}"
