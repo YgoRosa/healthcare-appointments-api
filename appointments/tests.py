@@ -247,3 +247,35 @@ class ConsultaTests(APITestCase):
             response.status_code,
             status.HTTP_204_NO_CONTENT
         )
+        
+    def test_criar_consulta_data_passada(self):
+
+        response = self.client.post(
+            '/api/consultas/',
+            {
+                "data": "2020-01-01T10:00:00Z",
+                "profissional": self.profissional_id
+            },
+            format='json'
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+        
+    def test_criar_consulta_profissional_inexistente(self):
+
+        response = self.client.post(
+            '/api/consultas/',
+            {
+                "data": "2030-06-10T14:00:00Z",
+                "profissional": 9999
+            },
+            format='json'
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
