@@ -125,3 +125,125 @@ class ProfissionalTests(APITestCase):
             response.status_code,
             status.HTTP_204_NO_CONTENT
         )
+
+
+
+class ConsultaTests(APITestCase):
+
+    def setUp(self):
+
+        self.user = User.objects.create_user(
+            username='admin',
+            password='123456'
+        )
+
+        response = self.client.post(
+            '/api/token/',
+            {
+                'username': 'admin',
+                'password': '123456'
+            }
+        )
+
+        token = response.data['access']
+
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {token}'
+        )
+
+        profissional_response = self.client.post(
+            '/api/profissionais/',
+            {
+                "nome_social": "Maria Silva",
+                "profissao": "Psicóloga",
+                "endereco": "Rua A",
+                "contato": "81999999999"
+            },
+            format='json'
+        )
+
+        self.profissional_id = profissional_response.data['id']
+
+    def test_criar_consulta(self):
+
+        response = self.client.post(
+            '/api/consultas/',
+            {
+                "data": "2030-06-10T14:00:00Z",
+                "profissional": self.profissional_id
+            },
+            format='json'
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED
+        )
+    
+    def test_listar_consultas(self):
+
+        self.client.post(
+            '/api/consultas/',
+            {
+                "data": "2030-06-10T14:00:00Z",
+                "profissional": self.profissional_id
+            },
+            format='json'
+        )
+
+        response = self.client.get(
+            '/api/consultas/'
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+    
+    def test_atualizar_consulta(self):
+
+        consulta = self.client.post(
+            '/api/consultas/',
+            {
+                "data": "2030-06-10T14:00:00Z",
+                "profissional": self.profissional_id
+            },
+            format='json'
+        )
+
+        consulta_id = consulta.data['id']
+
+        response = self.client.patch(
+            f'/api/consultas/{consulta_id}/',
+            {
+                "data": "2030-06-20T15:00:00Z"
+            },
+            format='json'
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+            
+    def test_deletar_consulta(self):
+
+        consulta = self.client.post(
+            '/api/consultas/',
+            {
+                "data": "2030-06-10T14:00:00Z",
+                "profissional": self.profissional_id
+            },
+            format='json'
+        )
+
+        consulta_id = consulta.data['id']
+
+        response = self.client.delete(
+            f'/api/consultas/{consulta_id}/'
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT
+        )
