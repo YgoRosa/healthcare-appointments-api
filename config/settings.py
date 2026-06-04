@@ -142,6 +142,18 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    
+    # Proteção contra Brute Force e DDoS: Limita o número de requisições por usuário/IP
+    # 1. Define quais classes de Throttling o projeto vai usar por padrão
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",  # Aplica para quem NÃO está logado
+        "rest_framework.throttling.UserRateThrottle",  # Aplica para quem ESTÁ logado
+    ],
+    # 2. Define os limites de velocidade para cada classe
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/day",  # Usuários anônimos: máx 100 requisições por dia
+        "user": "1000/day",  # Usuários autenticados: máx 1000 requisições por dia
+    },
 }
 
 SPECTACULAR_SETTINGS = {
