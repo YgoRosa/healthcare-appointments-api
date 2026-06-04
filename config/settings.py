@@ -149,17 +149,27 @@ CORS_ALLOWED_ORIGINS = [
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-
+    "formatters": {
+        "simple": {
+            "format": "{levelname} {asctime} {message}",
+            "style": "{",
+        },
+    },
     "handlers": {
         "file": {
             "level": "INFO",
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",  # Evita encher o disco
             "filename": "logs/app.log",
+            "maxBytes": 1024 * 1024 * 5,  # Limite de 5MB por arquivo
+            "backupCount": 3,  # Mantém no máximo 3 arquivos antigos
+            "formatter": "simple",  # Deixa o log legível com data/hora
         },
     },
-
-    "root": {
-        "handlers": ["file"],
-        "level": "INFO",
+    "loggers": {
+        "django": {  # Captura apenas o que importa do framework e da sua app
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": True,
+        },
     },
 }
