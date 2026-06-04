@@ -177,20 +177,33 @@ LOGGING = {
         },
     },
     "handlers": {
-        "file": {
+        "console": {
             "level": "INFO",
-            "class": "logging.handlers.RotatingFileHandler",  # Evita encher o disco
-            "filename": "logs/app.log",
-            "maxBytes": 1024 * 1024 * 5,  # Limite de 5MB por arquivo
-            "backupCount": 3,  # Mantém no máximo 3 arquivos antigos
-            "formatter": "simple",  # Deixa o log legível com data/hora
+            "class": "logging.StreamHandler",  # Direciona para o terminal (Render lê daqui)
+            "formatter": "simple",
         },
     },
     "loggers": {
-        "django": {  
-            "handlers": ["file"],
+        "django": {
+            "handlers": ["console"],  # Padrão é usar o console
             "level": "INFO",
             "propagate": True,
         },
     },
 }
+
+# Se estiver rodando LOCALMENTE (DEBUG=True)
+if DEBUG:
+    # Garante que a pasta logs exista localmente para não dar erro
+    os.makedirs("logs", exist_ok=True)
+    
+    LOGGING["handlers"]["file"] = {
+        "level": "INFO",
+        "class": "logging.handlers.RotatingFileHandler",
+        "filename": "logs/app.log",
+        "maxBytes": 1024 * 1024 * 5,
+        "backupCount": 3,
+        "formatter": "simple",
+    }
+    # Adiciona o arquivo como handler do django no ambiente local
+    LOGGING["loggers"]["django"]["handlers"].append("file")
