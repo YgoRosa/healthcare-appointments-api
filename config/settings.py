@@ -24,11 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$)ni63)(qe^4skn(!7cr8_#6$))3o!gxq+i%$w9yn)zwoqr3^5'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('RENDER') is None
 
 ALLOWED_HOSTS = [
     'healthcare-appointments-api.onrender.com', # Domínio de produção
