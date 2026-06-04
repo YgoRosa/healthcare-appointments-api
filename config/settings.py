@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     'rest_framework',
+    "drf_spectacular",
     'appointments',
 ]
 
@@ -140,6 +141,14 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "HealthCare - API de Agendamentos",
+    "DESCRIPTION": "API RESTful para gerenciamento de profissionais de saúde e consultas médicas, focada em inclusão.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,  # Oculta a rota do schema de dentro do próprio Swagger
 }
 
 CORS_ALLOWED_ORIGINS = [
@@ -166,7 +175,7 @@ LOGGING = {
         },
     },
     "loggers": {
-        "django": {  # Captura apenas o que importa do framework e da sua app
+        "django": {  
             "handlers": ["file"],
             "level": "INFO",
             "propagate": True,
