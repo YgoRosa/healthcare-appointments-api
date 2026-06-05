@@ -30,5 +30,8 @@ echo "PostgreSQL está pronto!"
 echo "Aplicando migrações do banco de dados..."
 python manage.py migrate
 
+echo "Verificando/Criando superusuário de testes..."
+python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@email.com', 'admin123')"
+
 # Executa o comando principal que foi passado no CMD do Dockerfile ou no Compose
 exec "$@"
