@@ -30,6 +30,7 @@ DEBUG = os.environ.get('RENDER') is None
 
 ALLOWED_HOSTS = [
     'healthcare-appointments-api.onrender.com', # Domínio de produção
+    'healthcare-appointments-api-staging.onrender.com', # Domínio de staging
     'localhost',
     '127.0.0.1',
 ]

@@ -1,17 +1,18 @@
 name: CI/CD Pipeline
 
-# Dispara o pipeline a cada push ou pull request na branch main ou master
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, staging ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, staging ]
 
 jobs:
+  # ----------------------------------------------------
+  # JOB 1: QUALIDADE (LINT & TESTES)
+  # ----------------------------------------------------
   test-and-lint:
     runs-on: ubuntu-latest
     
-    # Injeta variáveis de ambiente temporárias para o Django não quebrar nos testes
     env:
       SECRET_KEY: "django-insecure-test-key-healthcare-appointments-api"
       DB_NAME: "postgres"
@@ -20,7 +21,6 @@ jobs:
       DB_HOST: "localhost"
       DB_PORT: "5432"
 
-    # Sobe um banco PostgreSQL temporário dentro do servidor do GitHub para rodar os testes
     services:
       postgres:
         image: postgres:15-alpine
@@ -37,70 +37,64 @@ jobs:
           --health-retries 5
 
     steps:
-    # 1. Baixa o código do repositório no servidor do GitHub
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # 2. Instala o Python 3.13
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.13'
 
-    # 3. Instala o Poetry e configura para não usar ambiente virtual isolado no servidor
     - name: Install Poetry
       run: |
         pip install poetry
         poetry config virtualenvs.create false
 
-    # 4. Instala todas as dependências do pyproject.toml
     - name: Install dependencies
       run: poetry install --no-interaction --no-root
 
-    # 5. STEP DE LINT: Verifica se o código segue as boas práticas de estilo do Python (PEP 8)
+    # STEP OBRIGATÓRIO 1: LINT
     - name: Run Lint (Ruff check)
       run: |
         pip install ruff
         ruff check .
 
-    # 6. STEP DE TESTES: Executa os seus 11 testes automatizados (APITestCase)
+    # STEP OBRIGATÓRIO 2: TESTES
     - name: Run Tests
       run: |
         python manage.py test
 
-  # build-and-deploy-aws:
-  #   needs: test-and-lint # Este bloco SÓ roda se o Lint e os Testes passarem com sucesso!
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v4
+  # ----------------------------------------------------
+  # JOB 2: COMPILAÇÃO E ENTREGA (BUILD & DEPLOY)
+  # ----------------------------------------------------
+  build-and-deploy:
+    needs: test-and-lint # Só roda se o Lint e os Testes passarem!
+    runs-on: ubuntu-latest
+    # Garante que o deploy real em nuvem só aconteça ao fazer push/merge (ignora Pull Requests abertos)
+    if: github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-  #   # 7. Configura as credenciais da AWS de forma segura usando Secrets do GitHub
-  #   - name: Configure AWS credentials
-  #     uses: aws-actions/configure-aws-credentials@v4
-  #     with:
-  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #       aws-region: us-east-1
+    # STEP OBRIGATÓRIO 3: BUILD (Compilação e validação do Container Docker do ecossistema)
+    - name: Build Docker Image
+      run: |
+        echo "Iniciando Step de Build exigido pelo Edital..."
+        docker build -t healthcare-appointments-api:${{ github.sha }} .
+        echo "Build da imagem Docker concluído com sucesso para a tag ${{ github.sha }}!"
 
-  #   # 8. Faz o login no registro de containers da AWS (Amazon ECR)
-  #   - name: Login to Amazon ECR
-  #     id: login-ecr
-  #     uses: aws-actions/amazon-ecr-login@v2
-
-  #   # 9. REALIZA O BUILD REAL DA IMAGEM DOCKER E APENAS SIMULA O PUSH
-  #   - name: Build, tag, and push image to Amazon ECR
-  #     env:
-  #       ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
-  #       ECR_REPOSITORY: healthcare-appointments-api
-  #       IMAGE_TAG: ${{ github.sha }}
-  #     run: |
-  #       docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-  #       echo "Imagem Docker gerada com sucesso para a AWS!"
-  #       # Comentado para o pipeline pessoal não falhar por falta de chaves reais:
-  #       # docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-  #   # 10. DEPLOY (Indica para o serviço da AWS atualizar com a nova imagem do Docker)
-  #   - name: Deploy to Amazon ECS / App Runner
-  #     run: |
-  #       echo "Gatilho de deploy enviado para a AWS para atualizar o ambiente com a tag ${{ github.sha }}"
+    # STEP OBRIGATÓRIO 4: DEPLOY INTELIGENTE (Separação de Staging e Produção via Render)
+    - name: Deploy to Cloud Environment (Render Hub)
+      run: |
+        if [ "${{ github.ref }}" = "refs/heads/main" ] || [ "${{ github.ref }}" = "refs/heads/master" ]; then
+          echo "🎯 Branch identificada: [MAIN/MASTER]"
+          echo "🚀 Disparando Deploy Automatizado para o Ambiente de PRODUÇÃO..."
+          # Aqui faz a chamada real via cURL usando o Deploy Hook que o Render te dá nas configurações do serviço
+          curl -fX POST "${{ secrets.RENDER_DEPLOY_HOOK_PRODUCTION }}"
+        else
+          echo "🧪 Branch identificada: [${{ github.ref }}]"
+          echo "🛠️ Disparando Deploy Automatizado para o Ambiente de STAGING..."
+          # Aqui faz a chamada para o webhook do seu segundo app (o de Staging) no Render
+          curl -fX POST "${{ secrets.RENDER_DEPLOY_HOOK_STAGING }}"
+        fi

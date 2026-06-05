@@ -306,6 +306,14 @@ Sugestões de labels: `feature`, `bug`, `chore`.
 
 ---
 
+### Desafios Encontrados
+
+- Configuração do ambiente Docker com PostgreSQL
+- Integração do JWT com Swagger
+- Automação de migrations durante o deploy
+
+---
+
 ## 🛣️ Roadmap (curto prazo)
 
 - Implementar integração completa com Asaas (sandbox);
