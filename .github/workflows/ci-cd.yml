@@ -7,9 +7,6 @@ on:
     branches: [ main, master, staging ]
 
 jobs:
-  # ----------------------------------------------------
-  # JOB 1: QUALIDADE (LINT & TESTES)
-  # ----------------------------------------------------
   test-and-lint:
     runs-on: ubuntu-latest
     
@@ -64,9 +61,7 @@ jobs:
       run: |
         python manage.py test
 
-  # ----------------------------------------------------
-  # JOB 2: COMPILAÇÃO E ENTREGA (BUILD & DEPLOY)
-  # ----------------------------------------------------
+
   build-and-deploy:
     needs: test-and-lint # Só roda se o Lint e os Testes passarem!
     runs-on: ubuntu-latest
