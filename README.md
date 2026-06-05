@@ -1,4 +1,4 @@
-# 🌈 HealthCare — API de Agendamentos (Lacrei Saúde)
+# 🌈 HealthCare — API de Agendamentos
 
 API RESTful para gerenciamento de profissionais de saúde e agendamento de consultas com foco social: inclusão e apoio à comunidade LGBTQIAPN+.
 
@@ -62,7 +62,7 @@ docker compose up -d --build
 docker compose logs -f
 ```
 
-Após subir: API local em `http://localhost:8000/` e documentação Swagger em `http://localhost:8000/api/docs`.
+Após subir: API local em `http://localhost:8000/api` e documentação Swagger em `http://localhost:8000/api/docs`.
 
 ### Método B — Execução nativa (Poetry)
 
@@ -218,12 +218,6 @@ A API responde sob o prefixo `/api/` e utiliza barras finais (`/`). A listagem c
 - Siga o padrão de commits semânticos e escreva testes para novas regras de negócio.
 
 Sugestões de labels: `feature`, `bug`, `chore`.
-
----
-
-## 🧾 Licença & Créditos
-
-Projeto criado para o processo seletivo da Lacrei Saúde. Licença: MIT (ou substituir conforme necessidade).
 
 ---
 
