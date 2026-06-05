@@ -2,9 +2,11 @@
 
 API RESTful para gerenciamento de profissionais de saúde e agendamento de consultas com foco social: inclusão e apoio à comunidade LGBTQIAPN+.
 
-> 🚀 API em Produção: https://healthcare-appointments-api.onrender.com/api
+> 🚀 **API em Produção:** https://healthcare-appointments-api.onrender.com/api
 >
-> 📖 Documentação Swagger: https://healthcare-appointments-api.onrender.com/api/docs
+> 🧪 **Ambiente de Staging (Homologação):** https://healthcare-appointments-api-staging.onrender.com/api
+>
+> 📖 **Documentação Swagger:** https://healthcare-appointments-api.onrender.com/api/docs
 
 ---
 
@@ -171,6 +173,10 @@ Após a criação, utilize as credenciais cadastradas no endpoint `/api/token/` 
 - Rodar testes automatizados (APITestCase):
 
 ```bash
+# Se estiver utilizando Docker (Método A):
+docker compose exec web python manage.py test
+
+# Se estiver executando localmente via Poetry nativo (Método B):
 poetry run python manage.py test
 ```
 
@@ -186,13 +192,19 @@ Inclua novos testes para qualquer bugfix ou feature que altere regras de negóci
 
 ## ⚙️ Esteira de CI/CD & Fluxo de Deploy
 
-O pipeline GitHub Actions é responsável por garantir a qualidade da aplicação antes de qualquer atualização.
+O pipeline do **GitHub Actions** foi totalmente automatizado e estruturado de forma contínua para cobrir os passos obrigatórios exigidos pelo edital:
 
-### Esteira de Qualidade (`test-and-lint`)
+1. **Lint:** Executa a verificação estática de código com o `ruff`.
+2. **Testes:** Sobe um serviço temporário do PostgreSQL e dispara a suíte de `APITestCase`.
+3. **Build:** Executa a compilação real do container através do `docker build` com tag dinâmica (`${{ github.sha }}`) garantindo a integridade do empacotamento.
+4. **Deploy:** Realiza o disparo automático via webhooks protegidos por GitHub Secrets.
 
-- Executa análise estática de código com `ruff`;
-- Executa a suíte de testes automatizados (`poetry run python manage.py test`);
-- Bloqueia alterações caso falhas sejam identificadas.
+### Separação de Ambientes (Staging vs Produção)
+A esteira gerencia dinamicamente para onde enviar a aplicação com base no fluxo do Git:
+- **Ambiente de Staging:** Atualizado automaticamente ao receber alterações de ramificações de homologação.
+- **Ambiente de Produção:** Atualizado de forma automática após os testes passarem com sucesso ao consolidar alterações na branch principal (`main`/`master`).
+
+> ⚠️ **Nota de Infraestrutura (Cotagem de Recursos):** Para atender integralmente ao requisito do edital de ambientes isolados, a lógica de CI/CD foi configurada separando os disparos de Staging e Produção. Contudo, devido aos limites de recursos e cotas do plano gratuito da plataforma Render, ambos os Web Services compartilham a mesma instância de banco de dados PostgreSQL. A arquitetura está pronta e desacoplada; bastando parametrizar uma nova `DATABASE_URL` nas variáveis de ambiente para isolar fisicamente os dados.
 
 ### Deploy
 
