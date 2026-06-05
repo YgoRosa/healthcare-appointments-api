@@ -104,18 +104,21 @@ Inclua novos testes para qualquer bugfix ou feature que altere regras de negóci
 
 ## ⚙️ Esteira de CI/CD & Fluxo de Deploy
 
-O pipeline no GitHub Actions foi pensado em duas frentes:
+O pipeline GitHub Actions é responsável por garantir a qualidade da aplicação antes de qualquer atualização.
 
-1. **Esteira de Qualidade (`test-and-lint`)**
-   - Executa `ruff` e a suíte de testes (`python manage.py test`).
-   - Bloqueia merges se falhas forem detectadas.
+### Esteira de Qualidade (`test-and-lint`)
 
-2. **Esteira de Infraestrutura (`build-and-deploy-aws`)**
-   - Implementada para demonstrar integração com AWS utilizando Amazon ECR e ECS/App Runner.
-   - O deploy produtivo deste desafio foi realizado em Render para evitar custos adicionais de infraestrutura.
-   - A ativação do deploy na AWS requer apenas a configuração das credenciais da conta e a habilitação das etapas de push e atualização do serviço já definidas no workflow.
+- Executa análise estática de código com `ruff`;
+- Executa a suíte de testes automatizados (`python manage.py test`);
+- Bloqueia alterações caso falhas sejam identificadas.
 
-> Nota: o deploy público ativo está disponível em Render e a URL da API e docs é fornecida no topo do README.
+### Deploy
+
+O deploy produtivo da aplicação foi realizado utilizando a plataforma Render, onde a API está disponível publicamente para testes e validação.
+
+Como estudo complementar de infraestrutura, foi documentado e estruturado o fluxo necessário para adaptação do projeto à AWS (Amazon ECR e ECS/App Runner), permitindo futura migração para um ambiente dedicado sem alterações significativas na arquitetura da aplicação.
+
+> Nota: o deploy público ativo está disponível em Render e a URL da API e da documentação Swagger está disponível no topo deste README.
 
 ---
 
