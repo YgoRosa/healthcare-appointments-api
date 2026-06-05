@@ -2,7 +2,9 @@
 
 API RESTful para gerenciamento de profissionais de saúde e agendamento de consultas com foco social: inclusão e apoio à comunidade LGBTQIAPN+.
 
-> 🚀 Produção: https://healthcare-appointments-api.onrender.com/api/docs
+> 🚀 API em Produção: https://healthcare-appointments-api.onrender.com/api
+>
+> 📖 Documentação Swagger: https://healthcare-appointments-api.onrender.com/api/docs
 
 ---
 
@@ -38,7 +40,7 @@ Esta API foi desenvolvida como solução para o processo seletivo da Lacrei Saú
 - **Poetry**: adotado para garantir determinismo nas dependências via `poetry.lock`, reprodutibilidade de ambientes e facilidade de publicação/CI.
 
 - **Logs de Acesso e Erros**: design de logging distinto por ambiente:
-  - Desenvolvimento (DEBUG=True): `RotatingFileHandler` salva logs localmente com limite de 5MB por arquivo, preservando histórico e evitando crescimento indefinido.
+  - Desenvolvimento (DEBUG=True): `RotatingFileHandler` salva logs localmente em logs/app.log com limite de 5MB por arquivo, preservando histórico e evitando crescimento indefinido.
   - Produção (DEBUG=False): `StreamHandler` envia logs para `stdout` (prática recomendada em containers), permitindo coleta por orquestradores/serviços de logging.
 
 ---
@@ -47,8 +49,8 @@ Esta API foi desenvolvida como solução para o processo seletivo da Lacrei Saú
 
 ### Pré-requisitos
 
-- Docker e Docker Compose instalados (recomendado).
-- Para execução nativa: Python 3.13 e Poetry instalados.
+- Docker e Docker Compose instalados (com suporte a BuildKit).
+- Para execução nativa: Python 3.13 e Poetry (v2.0+) instalados.
 
 ### Método A — Docker (recomendado)
 
@@ -58,7 +60,7 @@ O `docker compose` sobe a API e o PostgreSQL. O `entrypoint` já executa migrati
 # Construir e iniciar containers em background
 docker compose up -d --build
 
-# Ver logs
+# Ver logs em tempo real
 docker compose logs -f
 ```
 
@@ -70,17 +72,97 @@ Após subir: API local em `http://localhost:8000/api` e documentação Swagger e
 # Instalar dependências
 poetry install
 
-# Ativar shell (opcional)
-poetry shell
-
-# Rodar migrations
-python manage.py migrate
+# Executar migrações do banco local
+poetry run python manage.py migrate
 
 # Iniciar servidor de desenvolvimento
-python manage.py runserver
+poetry run python manage.py runserver
 ```
 
 Docs locais: `http://localhost:8000/api/docs`.
+
+## 🧪 Como Testar a API
+A API utiliza autenticação JWT para proteger os endpoints de gerenciamento de profissionais e consultas.
+
+Para facilitar a avaliação do projeto, um usuário de homologação é criado automaticamente durante o deploy da aplicação em produção.
+
+### Credenciais de Teste
+
+```
+> As credenciais abaixo existem apenas para fins de avaliação técnica.
+Username: admin
+Password: admin123
+```
+
+### Passo 1 — Obter um Access Token
+Acesse a documentação interativa:
+
+```
+https://healthcare-appointments-api.onrender.com/api/docs/
+```
+Localize o endpoint:
+
+```
+POST /api/token/
+```
+Clique em **Try it out** e envie o seguinte JSON:
+
+```
+{
+  "username": "admin",
+  "password": "admin123"
+}
+```
+A resposta será semelhante a:
+
+```
+{
+  "refresh": "eyJ...",
+  "access": "eyJ..."
+}
+```
+Copie o valor retornado no campo `access`.
+
+---
+
+### Passo 2 — Autorizar as Requisições
+Na parte superior da página do Swagger, clique em **Authorize**.
+
+Cole o token obtido no passo anterior no campo de autenticação.
+
+Caso o Swagger solicite o formato completo, utilize:
+
+```
+Bearer SEU_ACCESS_TOKEN
+```
+Clique em **Authorize** e depois em **Close**.
+
+---
+
+### Passo 3 — Executar os Endpoints
+Após a autenticação, todos os endpoints protegidos poderão ser testados diretamente pela interface Swagger.
+
+Exemplos:
+
+```
+GET /api/profissionais/
+POST /api/profissionais/
+GET /api/consultas/
+POST /api/consultas/
+GET /api/consultas/profissional/{id}/
+```
+
+---
+
+### Ambiente Local
+Caso esteja executando a aplicação localmente via Docker, você pode criar um superusuário próprio com:
+
+```
+docker compose exec web python manage.py createsuperuser
+```
+Após a criação, utilize as credenciais cadastradas no endpoint `/api/token/` para gerar seus tokens JWT.
+
+> Observação: o usuário `admin` foi criado exclusivamente para facilitar a avaliação técnica do projeto. Em ambientes reais de produção, credenciais padrão não devem ser utilizadas.
 
 ---
 
@@ -89,7 +171,7 @@ Docs locais: `http://localhost:8000/api/docs`.
 - Rodar testes automatizados (APITestCase):
 
 ```bash
-python manage.py test
+poetry run python manage.py test
 ```
 
 - Rodar linter/formatador (Ruff):
@@ -109,7 +191,7 @@ O pipeline GitHub Actions é responsável por garantir a qualidade da aplicaçã
 ### Esteira de Qualidade (`test-and-lint`)
 
 - Executa análise estática de código com `ruff`;
-- Executa a suíte de testes automatizados (`python manage.py test`);
+- Executa a suíte de testes automatizados (`poetry run python manage.py test`);
 - Bloqueia alterações caso falhas sejam identificadas.
 
 ### Deploy
